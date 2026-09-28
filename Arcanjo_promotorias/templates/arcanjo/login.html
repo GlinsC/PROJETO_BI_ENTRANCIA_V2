@@ -1,0 +1,32 @@
+{% extends 'arcanjo/base.html' %}
+
+{% block title %}Entrar | Arcanjo Promotorias{% endblock %}
+
+{% block content %}
+<main class="login-shell">
+    <section class="login-card">
+        <div class="brand-lockup">
+            <span class="brand-mark">A</span>
+            <div>
+                <p class="eyebrow">Gestão institucional</p>
+                <h1>Arcanjo <strong>Promotorias</strong></h1>
+            </div>
+        </div>
+        <p class="login-intro">Entre para consultar e administrar as relações entre promotorias e resoluções.</p>
+
+        {% if form.errors %}
+            <div class="alert alert-error">Usuário ou senha inválidos.</div>
+        {% endif %}
+
+        <form method="post" class="login-form">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{{ next }}">
+            <label for="id_username">Usuário</label>
+            <input id="id_username" name="username" type="text" autocomplete="username" required autofocus>
+            <label for="id_password">Senha</label>
+            <input id="id_password" name="password" type="password" autocomplete="current-password" required>
+            <button class="button button-primary button-wide" type="submit">Acessar painel</button>
+        </form>
+    </section>
+</main>
+{% endblock %}

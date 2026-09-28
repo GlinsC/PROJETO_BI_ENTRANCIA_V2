@@ -1,0 +1,93 @@
+{% extends 'arcanjo/base.html' %}
+{% load static %}
+
+{% block title %}Painel | Arcanjo Promotorias{% endblock %}
+
+{% block content %}
+<main class="page-shell">
+    <section class="page-heading">
+        <div>
+            <p class="eyebrow">Painel de dados</p>
+            <h1>Relações entre promotorias e resoluções</h1>
+            <p class="page-description">Use as chaves existentes para consultar, criar e atualizar os vínculos.</p>
+        </div>
+        <div class="stat-block">
+            <span id="relation-count">0</span>
+            <small>relações cadastradas</small>
+        </div>
+    </section>
+
+    <section class="workspace-grid">
+        <article class="panel table-panel">
+            <div class="panel-heading">
+                <div>
+                    <p class="eyebrow">Consulta</p>
+                    <h2>Relações cadastradas</h2>
+                </div>
+                <label class="search-box">
+                    <span aria-hidden="true">⌕</span>
+                    <input id="search-input" type="search" placeholder="Buscar relação..." aria-label="Buscar relação">
+                </label>
+            </div>
+            <div id="feedback" class="alert" hidden></div>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Promotoria</th>
+                            <th>Unidade</th>
+                            <th>Resolução</th>
+                            <th>ano</th>
+                            <th>numero</th>
+                            <th class="actions-column">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="relations-body"></tbody>
+                </table>
+                <div id="empty-state" class="empty-state" hidden>
+                    <strong>Nenhuma relação encontrada</strong>
+                    <span>Cadastre um vínculo usando as chaves ao lado.</span>
+                </div>
+            </div>
+        </article>
+
+        <aside class="panel form-panel">
+            <div class="panel-heading">
+                <div>
+                    <p class="eyebrow">Cadastro</p>
+                    <h2 id="form-title">Nova relação</h2>
+                </div>
+            </div>
+            <p class="form-hint">Digite uma promotoria nova ou selecione uma já cadastrada.</p>
+            <form id="relation-form">
+                {% csrf_token %}
+                <label for="promotoria-name">Promotoria</label>
+                <input id="promotoria-name" type="text" list="promotorias-options" maxlength="100" placeholder="Digite ou selecione uma promotoria" autocomplete="off" required>
+                <datalist id="promotorias-options"></datalist>
+
+                <div id="new-promotoria-fields" class="new-promotoria-fields" hidden>
+                    <label for="new-promotoria-entrancia">Entrância</label>
+                    <select id="new-promotoria-entrancia" required disabled>
+                        <option value="">Selecione a entrância</option>
+                    </select>
+                </div>
+
+                <label for="resolucao-id">Resolução</label>
+                <select id="resolucao-id" required></select>
+
+                <label for="unidade">Unidade</label>
+                <input id="unidade" type="text" maxlength="100" placeholder="Ex.: 1ª Promotoria">
+
+                <div class="form-actions">
+                    <button id="cancel-button" class="button button-quiet" type="button" hidden>Cancelar</button>
+                    <button class="button button-primary" type="submit">Salvar relação</button>
+                </div>
+            </form>
+        </aside>
+    </section>
+</main>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{% static 'arcanjo/js/painel.js' %}"></script>
+{% endblock %}

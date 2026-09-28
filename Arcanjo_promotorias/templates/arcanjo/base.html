@@ -1,0 +1,30 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Arcanjo Promotorias{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'arcanjo/css/app.css' %}">
+</head>
+<body>
+    {% if user.is_authenticated %}
+        <header class="topbar">
+            <a class="brand" href="{% url 'dashboard' %}">
+                <span class="brand-mark">A</span>
+                <span>Arcanjo <strong>Promotorias</strong></span>
+            </a>
+            <div class="account-area">
+                <span>{{ user.get_username }}</span>
+                <form action="{% url 'logout' %}" method="post">
+                    {% csrf_token %}
+                    <button class="button button-quiet" type="submit">Sair</button>
+                </form>
+            </div>
+        </header>
+    {% endif %}
+
+    {% block content %}{% endblock %}
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html>
