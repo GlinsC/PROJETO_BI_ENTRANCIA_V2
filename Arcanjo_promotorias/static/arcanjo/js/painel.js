@@ -3,6 +3,13 @@
         relations: [],
         promotorias: [],
         resolucoes: [],
+        currentPage: 1,
+        totalPages: 1,
+        totalRelations: 0,
+        searchResults: null,
+        allRelationsPromise: null,
+        searchTimer: null,
+        searchRequest: 0,
         editingId: null,
     };
 
@@ -11,6 +18,9 @@
     const body = document.querySelector('#relations-body');
     const emptyState = document.querySelector('#empty-state');
     const searchInput = document.querySelector('#search-input');
+    const previousPageButton = document.querySelector('#previous-page');
+    const nextPageButton = document.querySelector('#next-page');
+    const pageIndicator = document.querySelector('#page-indicator');
     const promotoriaInput = document.querySelector('#promotoria-name');
     const promotoriaOptions = document.querySelector('#promotorias-options');
     const newPromotoriaFields = document.querySelector('#new-promotoria-fields');
@@ -23,6 +33,18 @@
 
     function apiData(payload) {
         return payload.results || payload;
+    }
+
+    async function apiAllPages(url) {
+        const items = [];
+        while (url) {
+            const payload = await apiFetch(url);
+            items.push(...apiData(payload));
+            if (!payload.next) break;
+            const next = new URL(payload.next, window.location.origin);
+            url = `${next.pathname}${next.search}`;
+        }
+        return items;
     }
 
     async function apiFetch(url, options) {
@@ -124,18 +146,14 @@
 
     function renderRelations() {
         const query = searchInput.value.trim().toLowerCase();
-        const relations = state.relations.filter((relation) => {
-            const text = [
-                relation.promotoria?.nome_promotoria,
-                relation.resolucao?.nome_resolucao,
-                relation.resolucao?.ano_resolucao,
-                relation.resolucao?.numero_resolucao,
-                relation.Unidade,
-                relation.promotoria?.id,
-                relation.resolucao?.id,
-            ].join(' ').toLowerCase();
-            return text.includes(query);
-        });
+        const totalPages = state.searchResults === null
+            ? state.totalPages
+            : Math.max(1, Math.ceil(state.searchResults.length / 20));
+        state.currentPage = Math.min(state.currentPage, totalPages);
+        const currentRelations = state.searchResults === null
+            ? state.relations
+            : state.searchResults.slice((state.currentPage - 1) * 20, state.currentPage * 20);
+        const relations = currentRelations.filter((relation) => matchesRelation(relation, query));
         body.innerHTML = relations.map((relation) => `
             <tr>
                 <td>${escapeHtml(relation.promotoria?.nome_promotoria || '-')} <small>#${relation.promotoria?.id || '-'}</small></td>
@@ -152,7 +170,74 @@
             </tr>
         `).join('');
         emptyState.hidden = relations.length > 0;
-        document.querySelector('#relation-count').textContent = state.relations.length;
+        document.querySelector('#relation-count').textContent = state.totalRelations;
+        pageIndicator.textContent = `Página ${state.currentPage} de ${totalPages}`;
+        previousPageButton.disabled = state.currentPage <= 1;
+        nextPageButton.disabled = state.currentPage >= totalPages;
+    }
+
+    function matchesRelation(relation, query) {
+        const text = [
+            relation.promotoria?.nome_promotoria,
+            relation.resolucao?.nome_resolucao,
+            relation.resolucao?.ano_resolucao,
+            relation.resolucao?.numero_resolucao,
+            relation.Unidade,
+            relation.promotoria?.id,
+            relation.resolucao?.id,
+        ].join(' ').toLowerCase();
+        return text.includes(query);
+    }
+
+    function loadAllRelations() {
+        if (!state.allRelationsPromise) {
+            state.allRelationsPromise = (async () => {
+                const allRelations = [];
+                let url = '/api/promotorias-resolucoes/?page_size=100';
+                while (url) {
+                    const payload = await apiFetch(url);
+                    allRelations.push(...apiData(payload));
+                    if (!payload.next) break;
+                    const next = new URL(payload.next, window.location.origin);
+                    url = `${next.pathname}${next.search}`;
+                }
+                return allRelations;
+            })().catch((error) => {
+                state.allRelationsPromise = null;
+                throw error;
+            });
+        }
+        return state.allRelationsPromise;
+    }
+
+    async function applyRelationSearch() {
+        const query = searchInput.value.trim().toLowerCase();
+        const requestId = ++state.searchRequest;
+        if (!query) {
+            state.searchResults = null;
+            await loadRelations(1);
+            return;
+        }
+        try {
+            const allRelations = await loadAllRelations();
+            if (requestId !== state.searchRequest) return;
+            state.searchResults = allRelations.filter((relation) => matchesRelation(relation, query));
+            state.currentPage = 1;
+            renderRelations();
+        } catch (error) {
+            showFeedback(error.message, 'error');
+        }
+    }
+
+    async function loadRelations(page) {
+        state.searchRequest += 1;
+        const payload = await apiFetch(`/api/promotorias-resolucoes/?page=${page}`);
+        state.relations = apiData(payload);
+        state.currentPage = page;
+        state.totalRelations = payload.count ?? state.relations.length;
+        state.totalPages = Math.max(1, Math.ceil(state.totalRelations / 20));
+        renderRelations();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     function escapeHtml(value) {
@@ -186,8 +271,14 @@
         if (!window.confirm('Excluir esta relação?')) return;
         try {
             await apiFetch(`/api/promotorias-resolucoes/${id}/`, { method: 'DELETE' });
-            state.relations = state.relations.filter((item) => item.id !== id);
-            renderRelations();
+            state.totalRelations = Math.max(0, state.totalRelations - 1);
+            state.allRelationsPromise = null;
+            if (state.searchResults !== null) {
+                await applyRelationSearch();
+            } else {
+                const lastPage = Math.max(1, Math.ceil(state.totalRelations / 20));
+                await loadRelations(Math.min(state.currentPage, lastPage));
+            }
             showFeedback('Relação excluída.', 'success');
         } catch (error) {
             showFeedback(error.message, 'error');
@@ -198,12 +289,15 @@
         try {
             const [relations, promotorias, resolucoes] = await Promise.all([
                 apiFetch('/api/promotorias-resolucoes/'),
-                apiFetch('/api/promotorias/'),
-                apiFetch('/api/resolucoes/'),
+                apiAllPages('/api/promotorias/?page_size=100'),
+                apiAllPages('/api/resolucoes/?page_size=100'),
             ]);
             state.relations = apiData(relations);
-            state.promotorias = apiData(promotorias);
-            state.resolucoes = apiData(resolucoes);
+            state.totalRelations = relations.count ?? state.relations.length;
+            state.totalPages = Math.max(1, Math.ceil(state.totalRelations / 20));
+            state.currentPage = 1;
+            state.promotorias = promotorias;
+            state.resolucoes = resolucoes;
             fillPromotoriaOptions(state.promotorias);
             fillEntranciaOptions(state.promotorias);
             fillSelect(resolucaoSelect, state.resolucoes, 'nome_resolucao');
@@ -251,8 +345,16 @@
                 state.relations = state.relations.map((item) => item.id === relation.id ? relation : item);
             } else {
                 state.relations.unshift(relation);
+                state.relations = state.relations.slice(0, 20);
+                state.totalRelations += 1;
+                state.totalPages = Math.max(1, Math.ceil(state.totalRelations / 20));
             }
-            renderRelations();
+            state.allRelationsPromise = null;
+            if (state.searchResults !== null) {
+                await applyRelationSearch();
+            } else {
+                renderRelations();
+            }
             resetForm();
             showFeedback('Relação salva com sucesso.', 'success');
         } catch (error) {
@@ -269,6 +371,34 @@
     });
 
     cancelButton.addEventListener('click', resetForm);
-    searchInput.addEventListener('input', renderRelations);
+    searchInput.addEventListener('input', () => {
+        window.clearTimeout(state.searchTimer);
+        state.searchTimer = window.setTimeout(applyRelationSearch, 250);
+    });
+    previousPageButton.addEventListener('click', () => {
+        if (state.currentPage > 1) {
+            if (state.searchResults !== null) {
+                state.currentPage -= 1;
+                renderRelations();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            } else {
+                loadRelations(state.currentPage - 1).catch((error) => showFeedback(error.message, 'error'));
+            }
+        }
+    });
+    nextPageButton.addEventListener('click', () => {
+        const totalPages = state.searchResults === null
+            ? state.totalPages
+            : Math.max(1, Math.ceil(state.searchResults.length / 20));
+        if (state.currentPage < totalPages) {
+            if (state.searchResults !== null) {
+                state.currentPage += 1;
+                renderRelations();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            } else {
+                loadRelations(state.currentPage + 1).catch((error) => showFeedback(error.message, 'error'));
+            }
+        }
+    });
     loadData();
 })();

@@ -1,8 +1,11 @@
 from types import SimpleNamespace
 
+from django.contrib.auth import get_user_model
 from django.test import SimpleTestCase
-from rest_framework.test import APIRequestFactory
+from django.urls import reverse
+from rest_framework.test import APIClient, APIRequestFactory, APITestCase
 
+from .models import Promotoria, PromotoriaResolucao, Resolucao
 from .permissions import IsStaff
 from .web_views import DashboardView
 
@@ -40,3 +43,59 @@ class DashboardAccessTests(SimpleTestCase):
 
 		view.request = SimpleNamespace(user=SimpleNamespace(is_staff=False))
 		self.assertFalse(view.test_func())
+
+
+class CrudPaginationTests(APITestCase):
+	def setUp(self):
+		user = get_user_model().objects.create_user(
+			username='staff-pagination',
+			password='test-password',
+			is_staff=True,
+		)
+		self.client.force_authenticate(user=user)
+		for numero in range(3):
+			Promotoria.objects.create(
+				nome_promotoria=f'Promotoria {numero}',
+				entrancia='1ª Entrância',
+			)
+
+	def test_crud_list_returns_paginated_results(self):
+		response = self.client.get('/api/promotorias/?page_size=2')
+
+		self.assertEqual(response.status_code, 200)
+		self.assertEqual(response.data['count'], 3)
+		self.assertEqual(len(response.data['results']), 2)
+		self.assertIsNotNone(response.data['next'])
+
+
+class PromotoriaResolucaoVisualizacaoTests(APITestCase):
+	def setUp(self):
+		self.client = APIClient()
+		promotoria = Promotoria.objects.create(
+			nome_promotoria='Promotoria de teste',
+			entrancia='1ª Entrância',
+		)
+		resolucao = Resolucao.objects.create(
+			nome_resolucao='Resolução de teste',
+			descricao_resolucao='Descrição de teste',
+			prazo_resolucao='30 dias',
+			numero_resolucao=1,
+			ano_resolucao=2026,
+		)
+		PromotoriaResolucao.objects.create(
+			promotoria=promotoria,
+			resolucao=resolucao,
+			Unidade='Unidade de teste',
+		)
+
+	def test_get_returns_nested_promotoria_and_resolucao(self):
+		response = self.client.get(reverse('promotorias-resolucoes-visualizacao'))
+
+		self.assertEqual(response.status_code, 200)
+		self.assertEqual(response.data[0]['promotoria']['nome_promotoria'], 'Promotoria de teste')
+		self.assertEqual(response.data[0]['resolucao']['nome_resolucao'], 'Resolução de teste')
+
+	def test_post_is_not_allowed(self):
+		response = self.client.post(reverse('promotorias-resolucoes-visualizacao'), {})
+
+		self.assertEqual(response.status_code, 405)

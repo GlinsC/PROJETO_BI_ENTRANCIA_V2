@@ -1,5 +1,7 @@
 from dj_rql.drf import RQLFilterBackend
-from rest_framework import viewsets
+from rest_framework import generics, viewsets
+from rest_framework.pagination import PageNumberPagination
+from rest_framework.permissions import AllowAny
 from .models import Promotoria, Resolucao, PromotoriaResolucao
 from .serializers import PromotoriaSerializer, ResolucaoSerializer, PromotoriaResolucaoSerializer
 from .filters import PromotoriaFilterClass, ResolucaoFilterClass, PromotoriaResolucaoFilterClass
@@ -7,22 +9,41 @@ from .filters import PromotoriaFilterClass, ResolucaoFilterClass, PromotoriaReso
 
 # Create your views here.
 
+class CrudPagination(PageNumberPagination):
+    page_size = 20
+    page_size_query_param = 'page_size'
+    max_page_size = 100
+
+
 class PromotoriaViewSet(viewsets.ModelViewSet):
-    queryset = Promotoria.objects.all()
+    queryset = Promotoria.objects.order_by('id')
     serializer_class = PromotoriaSerializer
+    pagination_class = CrudPagination
     filter_backends = [RQLFilterBackend]
     rql_filter_class = PromotoriaFilterClass
 
 class ResolucaoViewSet(viewsets.ModelViewSet):
-    queryset = Resolucao.objects.all()
+    queryset = Resolucao.objects.order_by('id')
     serializer_class = ResolucaoSerializer
+    pagination_class = CrudPagination
     filter_backends = [RQLFilterBackend]
     rql_filter_class = ResolucaoFilterClass
 
 class PromotoriaResolucaoViewSet(viewsets.ModelViewSet):
     queryset = PromotoriaResolucao.objects.select_related(
         'promotoria', 'resolucao'
-    )
+    ).order_by('id')
     serializer_class = PromotoriaResolucaoSerializer
+    pagination_class = CrudPagination
     filter_backends = [RQLFilterBackend]
     rql_filter_class =PromotoriaResolucaoFilterClass
+
+
+class PromotoriaResolucaoVisualizacaoView(generics.ListAPIView):
+    http_method_names = ['get']
+    permission_classes = [AllowAny]
+    pagination_class = None
+    queryset = PromotoriaResolucao.objects.select_related(
+        'promotoria', 'resolucao'
+    )
+    serializer_class = PromotoriaResolucaoSerializer
