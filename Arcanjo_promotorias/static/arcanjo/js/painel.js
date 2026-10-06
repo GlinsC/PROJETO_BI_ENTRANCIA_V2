@@ -254,17 +254,22 @@
         cancelButton.hidden = true;
     }
 
-    function editRelation(id) {
-        const relation = state.relations.find((item) => item.id === id);
-        if (!relation) return;
-        state.editingId = id;
-        promotoriaInput.value = relation.promotoria.nome_promotoria;
-        updatePromotoriaFields();
-        resolucaoSelect.value = relation.resolucao.id;
-        unidadeInput.value = relation.Unidade || '';
-        formTitle.textContent = 'Editar relação';
-        cancelButton.hidden = false;
-        form.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    async function editRelation(id) {
+        try {
+            const relations = state.searchResults === null ? state.relations : state.searchResults;
+            const relation = relations.find((item) => item.id === id)
+                || await apiFetch(`/api/promotorias-resolucoes/${id}/`);
+            state.editingId = id;
+            promotoriaInput.value = relation.promotoria.nome_promotoria;
+            updatePromotoriaFields();
+            resolucaoSelect.value = relation.resolucao.id;
+            unidadeInput.value = relation.Unidade || '';
+            formTitle.textContent = 'Editar relação';
+            cancelButton.hidden = false;
+            form.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        } catch (error) {
+            showFeedback(error.message, 'error');
+        }
     }
 
     async function removeRelation(id) {
