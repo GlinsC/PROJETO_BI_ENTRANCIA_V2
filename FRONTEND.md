@@ -99,7 +99,7 @@ PATCH  /api/promotorias-resolucoes/<id>/
 DELETE /api/promotorias-resolucoes/<id>/
 ```
 
-No carregamento inicial, o JavaScript busca as tres colecoes em paralelo. A tabela usa somente os dados de `promotorias-resolucoes`, enquanto as outras duas respostas populam os selects de chaves.
+No carregamento inicial, o JavaScript busca as tres colecoes em paralelo. A tabela usa somente a primeira pagina de `promotorias-resolucoes`, enquanto as outras duas respostas populam os selects de chaves. Ao pesquisar, busca ate 600 relacoes em uma unica requisicao e filtra esses registros no navegador. O endpoint limita o `page_size` das relacoes a 600; se o volume ultrapassar esse limite, a busca devera migrar para filtragem no servidor para continuar cobrindo todos os registros.
 
 ## Criacao de uma relacao
 

@@ -15,6 +15,10 @@ class CrudPagination(PageNumberPagination):
     max_page_size = 100
 
 
+class PromotoriaResolucaoPagination(CrudPagination):
+    max_page_size = 600
+
+
 class PromotoriaViewSet(viewsets.ModelViewSet):
     queryset = Promotoria.objects.order_by('id')
     serializer_class = PromotoriaSerializer
@@ -34,7 +38,7 @@ class PromotoriaResolucaoViewSet(viewsets.ModelViewSet):
         'promotoria', 'resolucao'
     ).order_by('id')
     serializer_class = PromotoriaResolucaoSerializer
-    pagination_class = CrudPagination
+    pagination_class = PromotoriaResolucaoPagination
     filter_backends = [RQLFilterBackend]
     rql_filter_class =PromotoriaResolucaoFilterClass
 

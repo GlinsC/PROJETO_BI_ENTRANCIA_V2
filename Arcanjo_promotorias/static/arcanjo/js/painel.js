@@ -192,16 +192,8 @@
     function loadAllRelations() {
         if (!state.allRelationsPromise) {
             state.allRelationsPromise = (async () => {
-                const allRelations = [];
-                let url = '/api/promotorias-resolucoes/?page_size=100';
-                while (url) {
-                    const payload = await apiFetch(url);
-                    allRelations.push(...apiData(payload));
-                    if (!payload.next) break;
-                    const next = new URL(payload.next, window.location.origin);
-                    url = `${next.pathname}${next.search}`;
-                }
-                return allRelations;
+                const payload = await apiFetch('/api/promotorias-resolucoes/?page_size=600');
+                return apiData(payload);
             })().catch((error) => {
                 state.allRelationsPromise = null;
                 throw error;

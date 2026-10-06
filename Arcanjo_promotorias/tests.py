@@ -68,6 +68,39 @@ class CrudPaginationTests(APITestCase):
 		self.assertIsNotNone(response.data['next'])
 
 
+class PromotoriaResolucaoPaginationTests(APITestCase):
+	def setUp(self):
+		user = get_user_model().objects.create_user(
+			username='staff-relation-pagination',
+			password='test-password',
+			is_staff=True,
+		)
+		self.client.force_authenticate(user=user)
+		promotoria = Promotoria.objects.create(
+			nome_promotoria='Promotoria de teste',
+			entrancia='1ª Entrância',
+		)
+		resolucao = Resolucao.objects.create(
+			nome_resolucao='Resolução de teste',
+			descricao_resolucao='',
+			prazo_resolucao='',
+			numero_resolucao=1,
+			ano_resolucao=2026,
+		)
+		PromotoriaResolucao.objects.bulk_create([
+			PromotoriaResolucao(promotoria=promotoria, resolucao=resolucao)
+			for _ in range(601)
+		])
+
+	def test_relation_list_accepts_page_size_of_600_and_caps_larger_requests(self):
+		response = self.client.get('/api/promotorias-resolucoes/?page_size=1000')
+
+		self.assertEqual(response.status_code, 200)
+		self.assertEqual(response.data['count'], 601)
+		self.assertEqual(len(response.data['results']), 600)
+		self.assertIsNotNone(response.data['next'])
+
+
 class PromotoriaResolucaoVisualizacaoTests(APITestCase):
 	def setUp(self):
 		self.client = APIClient()
