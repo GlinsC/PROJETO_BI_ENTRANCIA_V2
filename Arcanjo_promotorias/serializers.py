@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Promotoria, Resolucao, PromotoriaResolucao
+from .models import Promotoria, Resolucao, PromotoriaResolucao, correicao
 
 class PromotoriaSerializer(serializers.ModelSerializer):
     class Meta:
@@ -34,4 +34,24 @@ class PromotoriaResolucaoSerializer(serializers.ModelSerializer):
             'resolucao_id',
             'promotoria',
             'resolucao',
+        ]
+
+class CorreicaoSerializer(serializers.ModelSerializer):
+    nome_promotoria = serializers.CharField(
+        source='promotoria_unidade.nome_promotoria',
+        read_only=True,
+    )
+    promotoria_id = serializers.PrimaryKeyRelatedField(
+        source='promotoria_unidade',
+        queryset=Promotoria.objects.all(),
+        write_only=True,
+    )
+
+    class Meta:
+        model = correicao
+        fields = [
+            'id',
+            'promotoria_id',
+            'nome_promotoria',
+            'data_correcao',
         ]

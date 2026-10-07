@@ -31,4 +31,5 @@ urlpatterns = [
     path('painel/', DashboardView.as_view(), name='dashboard'),
     path('restrito_admin/', admin.site.urls),
     path('api/', include('Arcanjo_promotorias.urls')),
+    path('correicoes/', include('Arcanjo_promotorias.urls')),
 ]

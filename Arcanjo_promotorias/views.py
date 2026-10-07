@@ -2,9 +2,9 @@ from dj_rql.drf import RQLFilterBackend
 from rest_framework import generics, viewsets
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import AllowAny
-from .models import Promotoria, Resolucao, PromotoriaResolucao
-from .serializers import PromotoriaSerializer, ResolucaoSerializer, PromotoriaResolucaoSerializer
-from .filters import PromotoriaFilterClass, ResolucaoFilterClass, PromotoriaResolucaoFilterClass
+from .models import Promotoria, Resolucao, PromotoriaResolucao, correicao
+from .serializers import CorreicaoSerializer, PromotoriaSerializer, ResolucaoSerializer, PromotoriaResolucaoSerializer
+from .filters import CorreicaoFilterClass, PromotoriaFilterClass, ResolucaoFilterClass, PromotoriaResolucaoFilterClass
 
 
 # Create your views here.
@@ -51,3 +51,10 @@ class PromotoriaResolucaoVisualizacaoView(generics.ListAPIView):
         'promotoria', 'resolucao'
     )
     serializer_class = PromotoriaResolucaoSerializer
+
+class CorreicaoViewSet(viewsets.ModelViewSet):
+    queryset = correicao.objects.select_related('promotoria_unidade').order_by('id')
+    serializer_class = CorreicaoSerializer
+    pagination_class = CrudPagination
+    filter_backends = [RQLFilterBackend]
+    rql_filter_class = CorreicaoFilterClass

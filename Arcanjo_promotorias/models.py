@@ -26,3 +26,12 @@ class PromotoriaResolucao(models.Model):
 
     def __str__(self):
         return f"{self.promotoria.nome_promotoria} - {self.resolucao.nome_resolucao}"
+
+
+
+class correicao(models.Model):
+    promotoria_unidade = models.ForeignKey(Promotoria, on_delete=models.CASCADE)
+    data_correcao = models.DateField()
+
+    def __str__(self):
+        return f"{self.promotoria_unidade.nome_promotoria} - {self.data_correcao}"

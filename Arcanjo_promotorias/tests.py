@@ -5,7 +5,7 @@ from django.test import SimpleTestCase
 from django.urls import reverse
 from rest_framework.test import APIClient, APIRequestFactory, APITestCase
 
-from .models import Promotoria, PromotoriaResolucao, Resolucao
+from .models import Promotoria, PromotoriaResolucao, Resolucao, correicao
 from .permissions import IsStaff
 from .web_views import DashboardView
 
@@ -132,3 +132,29 @@ class PromotoriaResolucaoVisualizacaoTests(APITestCase):
 		response = self.client.post(reverse('promotorias-resolucoes-visualizacao'), {})
 
 		self.assertEqual(response.status_code, 405)
+
+
+class CorreicaoApiTests(APITestCase):
+	def setUp(self):
+		user = get_user_model().objects.create_user(
+			username='staff-correicao',
+			password='test-password',
+			is_staff=True,
+		)
+		self.client.force_authenticate(user=user)
+		self.promotoria = Promotoria.objects.create(
+			nome_promotoria='Promotoria de teste',
+			entrancia='1ª Entrância',
+		)
+
+	def test_create_accepts_promotoria_id_and_returns_name_and_date(self):
+		response = self.client.post('/api/correicoes/', {
+			'promotoria_id': self.promotoria.id,
+			'data_correcao': '2026-10-07',
+		}, format='json')
+
+		self.assertEqual(response.status_code, 201)
+		self.assertEqual(response.data['nome_promotoria'], 'Promotoria de teste')
+		self.assertEqual(response.data['data_correcao'], '2026-10-07')
+		self.assertNotIn('promotoria_id', response.data)
+		self.assertEqual(correicao.objects.get().promotoria_unidade, self.promotoria)
