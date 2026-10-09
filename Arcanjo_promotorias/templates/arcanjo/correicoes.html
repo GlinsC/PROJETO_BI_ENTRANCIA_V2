@@ -1,0 +1,89 @@
+{% extends 'arcanjo/base.html' %}
+{% load static %}
+
+{% block title %}Correições | Arcanjo Promotorias{% endblock %}
+
+{% block content %}
+<main class="page-shell">
+    <section class="page-heading">
+        <div>
+            <p class="eyebrow">Painel de dados</p>
+            <h1>Administração de correições</h1>
+            <p class="page-description">Cadastre a previsão e acompanhe a realização das correições por promotoria.</p>
+        </div>
+        <div class="heading-actions">
+            <a class="button button-primary button-link dashboard-nav-link" href="{% url 'dashboard' %}" style="text-decoration: none">
+                <span aria-hidden="true">←</span> Painel de resoluções
+            </a>
+            <div class="stat-block">
+                <span id="correicao-count">0</span>
+                <small>correições no ano</small>
+            </div>
+        </div>
+    </section>
+
+    <section class="workspace-grid">
+        <article class="panel table-panel">
+            <div class="panel-heading">
+                <div>
+                    <p class="eyebrow">Consulta</p>
+                    <h2>Correições cadastradas</h2>
+                </div>
+                <div class="filter-controls">
+                    <label for="year-filter">Ano</label>
+                    <input id="year-filter" type="number" min="1900" max="9999" required>
+                    <label class="search-box">
+                        <span aria-hidden="true">⌕</span>
+                        <input id="search-input" type="search" placeholder="Buscar promotoria..." aria-label="Buscar promotoria">
+                    </label>
+                </div>
+            </div>
+            <div id="feedback" class="alert" hidden></div>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Promotoria</th>
+                            <th>Data prevista</th>
+                            <th>Realizada</th>
+                            <th class="actions-column">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="correicoes-body"></tbody>
+                </table>
+                <div id="empty-state" class="empty-state" hidden>
+                    <strong>Nenhuma correição encontrada</strong>
+                    <span>Cadastre uma previsão para uma promotoria neste ano.</span>
+                </div>
+            </div>
+        </article>
+
+        <aside class="panel form-panel">
+            <div class="panel-heading">
+                <div>
+                    <p class="eyebrow">Cadastro</p>
+                    <h2 id="form-title">Nova correição</h2>
+                </div>
+            </div>
+            <p class="form-hint">Selecione a promotoria e informe a data prevista. O status começa como não realizada.</p>
+            <form id="correicao-form">
+                {% csrf_token %}
+                <label for="promotoria-id">Promotoria</label>
+                <select id="promotoria-id" required></select>
+
+                <label for="data-correcao">Data prevista</label>
+                <input id="data-correcao" type="date" required>
+
+                <div class="form-actions">
+                    <button id="cancel-button" class="button button-quiet" type="button" hidden>Cancelar</button>
+                    <button class="button button-primary" type="submit">Salvar correição</button>
+                </div>
+            </form>
+        </aside>
+    </section>
+</main>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{% static 'arcanjo/js/correicoes.js' %}?v=4"></script>
+{% endblock %}

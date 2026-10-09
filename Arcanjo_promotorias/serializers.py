@@ -44,7 +44,6 @@ class CorreicaoSerializer(serializers.ModelSerializer):
     promotoria_id = serializers.PrimaryKeyRelatedField(
         source='promotoria_unidade',
         queryset=Promotoria.objects.all(),
-        write_only=True,
     )
 
     class Meta:
@@ -54,4 +53,11 @@ class CorreicaoSerializer(serializers.ModelSerializer):
             'promotoria_id',
             'nome_promotoria',
             'data_correcao',
+            'confirme_correcao',
         ]
+
+    def update(self, instance, validated_data):
+        data_correcao = validated_data.get('data_correcao', instance.data_correcao)
+        if data_correcao != instance.data_correcao:
+            validated_data['confirme_correcao'] = False
+        return super().update(instance, validated_data)

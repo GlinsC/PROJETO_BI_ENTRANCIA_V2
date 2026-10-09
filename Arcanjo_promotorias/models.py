@@ -32,6 +32,7 @@ class PromotoriaResolucao(models.Model):
 class correicao(models.Model):
     promotoria_unidade = models.ForeignKey(Promotoria, on_delete=models.CASCADE)
     data_correcao = models.DateField()
+    confirme_correcao = models.BooleanField(default=False)
 
     def __str__(self):
         return f"{self.promotoria_unidade.nome_promotoria} - {self.data_correcao}"

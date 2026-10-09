@@ -17,5 +17,9 @@ class DashboardView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
         return self.request.user.is_staff
 
 
+class CorreicaoDashboardView(DashboardView):
+    template_name = 'arcanjo/correicoes.html'
+
+
 class LogoutPageView(LogoutView):
     next_page = reverse_lazy('login')

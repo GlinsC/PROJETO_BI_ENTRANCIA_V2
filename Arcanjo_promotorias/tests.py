@@ -1,7 +1,7 @@
 from types import SimpleNamespace
 
 from django.contrib.auth import get_user_model
-from django.test import SimpleTestCase
+from django.test import SimpleTestCase, TestCase
 from django.urls import reverse
 from rest_framework.test import APIClient, APIRequestFactory, APITestCase
 
@@ -43,6 +43,28 @@ class DashboardAccessTests(SimpleTestCase):
 
 		view.request = SimpleNamespace(user=SimpleNamespace(is_staff=False))
 		self.assertFalse(view.test_func())
+
+
+class CorreicaoDashboardPageTests(TestCase):
+	def test_requires_login(self):
+		response = self.client.get(reverse('correicoes-dashboard'))
+
+		self.assertEqual(response.status_code, 302)
+		self.assertIn('/login/', response.url)
+
+	def test_staff_can_open_page_and_switch_to_resolution_dashboard(self):
+		user = get_user_model().objects.create_user(
+			username='staff-correicao-dashboard',
+			password='test-password',
+			is_staff=True,
+		)
+		self.client.force_login(user)
+
+		response = self.client.get(reverse('correicoes-dashboard'))
+
+		self.assertEqual(response.status_code, 200)
+		self.assertContains(response, 'Administração de correições')
+		self.assertContains(response, reverse('dashboard'))
 
 
 class CrudPaginationTests(APITestCase):
@@ -156,5 +178,93 @@ class CorreicaoApiTests(APITestCase):
 		self.assertEqual(response.status_code, 201)
 		self.assertEqual(response.data['nome_promotoria'], 'Promotoria de teste')
 		self.assertEqual(response.data['data_correcao'], '2026-10-07')
-		self.assertNotIn('promotoria_id', response.data)
+		self.assertEqual(response.data['promotoria_id'], self.promotoria.id)
+		self.assertFalse(response.data['confirme_correcao'])
 		self.assertEqual(correicao.objects.get().promotoria_unidade, self.promotoria)
+
+	def test_update_changes_scheduled_date_and_completed_status(self):
+		item = correicao.objects.create(
+			promotoria_unidade=self.promotoria,
+			data_correcao='2026-10-07',
+		)
+
+		response = self.client.patch(f'/api/correicoes/{item.id}/', {
+			'promotoria_id': self.promotoria.id,
+			'data_correcao': '2026-11-12',
+			'confirme_correcao': True,
+		}, format='json')
+
+		self.assertEqual(response.status_code, 200)
+		self.assertEqual(response.data['promotoria_id'], self.promotoria.id)
+		self.assertEqual(response.data['data_correcao'], '2026-11-12')
+		self.assertFalse(response.data['confirme_correcao'])
+
+	def test_confirmation_can_be_updated_without_resending_other_fields(self):
+		item = correicao.objects.create(
+			promotoria_unidade=self.promotoria,
+			data_correcao='2026-10-07',
+		)
+
+		response = self.client.patch(f'/api/correicoes/{item.id}/', {
+			'confirme_correcao': True,
+		}, format='json')
+
+		self.assertEqual(response.status_code, 200)
+		self.assertTrue(response.data['confirme_correcao'])
+		self.assertEqual(response.data['promotoria_id'], self.promotoria.id)
+		self.assertEqual(response.data['data_correcao'], '2026-10-07')
+
+	def test_editing_date_without_confirmation_field_resets_status(self):
+		item = correicao.objects.create(
+			promotoria_unidade=self.promotoria,
+			data_correcao='2026-10-07',
+			confirme_correcao=True,
+		)
+
+		response = self.client.patch(f'/api/correicoes/{item.id}/', {
+			'data_correcao': '2026-11-12',
+		}, format='json')
+
+		self.assertEqual(response.status_code, 200)
+		self.assertEqual(response.data['data_correcao'], '2026-11-12')
+		self.assertFalse(response.data['confirme_correcao'])
+
+	def test_editing_without_changing_date_preserves_confirmed_status(self):
+		item = correicao.objects.create(
+			promotoria_unidade=self.promotoria,
+			data_correcao='2026-10-07',
+			confirme_correcao=True,
+		)
+
+		response = self.client.patch(f'/api/correicoes/{item.id}/', {
+			'data_correcao': '2026-10-07',
+		}, format='json')
+
+		self.assertEqual(response.status_code, 200)
+		self.assertTrue(response.data['confirme_correcao'])
+
+	def test_records_beyond_first_page_can_be_loaded_and_updated(self):
+		correicao.objects.bulk_create([
+			correicao(
+				promotoria_unidade=self.promotoria,
+				data_correcao='2026-10-07',
+			)
+			for _ in range(601)
+		])
+
+		list_response = self.client.get('/api/correicoes/?page_size=1000')
+
+		self.assertEqual(list_response.status_code, 200)
+		self.assertEqual(list_response.data['count'], 601)
+		self.assertEqual(len(list_response.data['results']), 600)
+		self.assertIsNotNone(list_response.data['next'])
+
+		last_item = correicao.objects.order_by('id').last()
+		update_response = self.client.patch(
+			f'/api/correicoes/{last_item.id}/',
+			{'confirme_correcao': True},
+			format='json',
+		)
+
+		self.assertEqual(update_response.status_code, 200)
+		self.assertTrue(update_response.data['confirme_correcao'])

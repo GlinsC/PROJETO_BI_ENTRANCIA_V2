@@ -19,6 +19,7 @@ from django.urls import include, path
 from django.views.generic import RedirectView
 
 from Arcanjo_promotorias.web_views import (
+    CorreicaoDashboardView,
     DashboardView,
     LoginPageView,
     LogoutPageView,
@@ -28,8 +29,8 @@ urlpatterns = [
     path('', RedirectView.as_view(pattern_name='dashboard', permanent=False)),
     path('login/', LoginPageView.as_view(), name='login'),
     path('logout/', LogoutPageView.as_view(), name='logout'),
+    path('painel/correicoes/', CorreicaoDashboardView.as_view(), name='correicoes-dashboard'),
     path('painel/', DashboardView.as_view(), name='dashboard'),
     path('restrito_admin/', admin.site.urls),
     path('api/', include('Arcanjo_promotorias.urls')),
-    path('correicoes/', include('Arcanjo_promotorias.urls')),
 ]
