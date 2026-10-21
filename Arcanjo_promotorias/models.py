@@ -15,6 +15,7 @@ class Resolucao(models.Model):
     prazo_resolucao = models.CharField(max_length=100, blank=True)
     numero_resolucao = models.PositiveIntegerField()
     ano_resolucao = models.PositiveIntegerField()
+    link_resolucao = models.URLField(blank=True)
 
     def __str__(self):
         return self.nome_resolucao

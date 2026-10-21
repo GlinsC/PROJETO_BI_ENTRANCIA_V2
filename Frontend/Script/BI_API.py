@@ -6,7 +6,11 @@ import requests
 import streamlit as st
 
 
-st.set_page_config(page_title="Dados Controle Externo", layout="wide")
+st.set_page_config(
+	page_title="Dados Controle Externo",
+	layout="wide",
+	initial_sidebar_state="expanded",
+)
 
 
 API_TIMEOUT = 10
@@ -38,8 +42,9 @@ def carregar_dados_api():
 			"resolucao.nome_resolucao": "RESOLUCAO",
 			"resolucao.descricao_resolucao": "descricao_resolucao",
 			"resolucao.prazo_resolucao": "prazo_resolucao",
-			"resolucao.numero_resolucao": "Numero",
-			"resolucao.ano_resolucao": "Ano",
+			"resolucao.link_resolucao": "link_resolucao",
+			"resolucao.numero_resolucao": "Numero_Resolução",
+			"resolucao.ano_resolucao": "Ano_Resolução",
 		}
 	)
 
@@ -50,8 +55,9 @@ def carregar_dados_api():
 		"RESOLUCAO",
 		"descricao_resolucao",
 		"prazo_resolucao",
-		"Numero",
-		"Ano",
+		"link_resolucao",
+		"Numero_Resolução",
+		"Ano_Resolução",
 	]
 	for coluna in colunas_necessarias:
 		if coluna not in dados.columns:
@@ -62,11 +68,12 @@ def carregar_dados_api():
 
 def identidade_resolucao(resolucao):
 	identidades = [
-		("POLICIAL", "Policial", "#1769aa", "#e5f3ff"),
-		("MILITAR", "Militar", "#b42318", "#fff0ee"),
-		("PRISIONAIS", "Estabelecimentos prisionais", "#6b46c1", "#f2edff"),
+		("POLICIAL", "Estabelecimento Policial", "#1769aa", "#e5f3ff"),
+		("MILITAR", "Estabelecimento Militar", "#b42318", "#fff0ee"),
+		("PRISIONAIS", "Estabelecimento prisional", "#6b46c1", "#f2edff"),
 		("IDOSOS", "Pessoas idosas", "#19724a", "#e9f8f0"),
-		("ACOLHIMENTO", "Acolhimento institucional", "#b45309", "#fff6e5"),
+		("ACOLHIMENTO INSTITUCIONAL", "Acolhimento institucional", "#b45309", "#fff6e5"),
+		("ACOLHIMENTO FAMILIAR", "Acolhimento Familiar", "#b45309", "#fff6e5"),
 		("FAMÍLIA ACOLHEDORA", "Família acolhedora", "#c24178", "#fff0f6"),
 		("LIBERDADE ASSISTIDA", "Liberdade assistida e PSC", "#087f8c", "#e7f8fa"),
 		("INTERNAÇÃO", "Internação", "#334e68", "#edf3f8"),
@@ -108,13 +115,13 @@ st.sidebar.title("Encontre sua resolução")
 resolucoes_disponiveis = sorted(dados["RESOLUCAO"].dropna().unique())
 promotorias_disponiveis = sorted(dados["PROMOTORIA"].dropna().unique())
 
-opcao_resolucao = st.sidebar.selectbox(
-	"Escolha uma resolução:",
-	["Todas"] + resolucoes_disponiveis,
-)
 opcao_promotoria = st.sidebar.selectbox(
 	"Escolha uma promotoria:",
 	["Todas"] + promotorias_disponiveis,
+)
+opcao_resolucao = st.sidebar.selectbox(
+	"Escolha uma resolução:",
+	["Todas"] + resolucoes_disponiveis,
 )
 
 dados_filtrados = dados.copy()
@@ -159,11 +166,15 @@ else:
 	resolucao_selecionada = dados_filtrados.iloc[0]
 	st.markdown(
 		f'<div class="resolution-banner" style="--identity-color: {cor}; --identity-background: {fundo_identidade};">'
-		f'<span>Resolução selecionada</span><strong>{nome_identidade}</strong></div>'
-		f'<p><strong>Prazo:</strong> {resolucao_selecionada["prazo_resolucao"]}</p>'
-		f'<p><strong>Membros:</strong> {resolucao_selecionada["descricao_resolucao"]}</p>',
+		f'<span>Resolução selecionada</span><strong>{nome_identidade}</strong></div>',
 		unsafe_allow_html=True,
 	)
+	st.write("Prazo:", resolucao_selecionada["prazo_resolucao"])
+	st.write("Membros:", resolucao_selecionada["descricao_resolucao"])
+
+	link_resolucao = resolucao_selecionada["link_resolucao"]
+	if not pd.isna(link_resolucao) and str(link_resolucao).strip():
+		st.link_button("Acessar link da resolução", str(link_resolucao))
 
 	st.markdown(f'<h3 style="color: {cor};">Dados filtrados</h3>', unsafe_allow_html=True)
 	st.caption(f"{len(dados_filtrados)} registro(s) encontrado(s)")
@@ -177,7 +188,7 @@ else:
 		dados_para_exibir = dados_filtrados[colunas_exibicao]
 	else:
 		dados_para_exibir = dados_filtrados[
-			["PROMOTORIA", "ENTRANCIA", "UNIDADE", "RESOLUCAO", "Numero", "Ano",]
+			["PROMOTORIA", "ENTRANCIA", "UNIDADE", "RESOLUCAO", "Numero_Resolução", "Ano_Resolução",]
 		]
 
 	dados_estilizados = dados_para_exibir.style.apply(alternar_linhas, axis=1)
@@ -185,5 +196,4 @@ else:
 		dados_estilizados,
 		width="stretch",
 		hide_index=True,
-		use_container_width=True,
 	)

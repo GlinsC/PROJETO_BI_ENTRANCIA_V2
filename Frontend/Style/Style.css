@@ -3,7 +3,6 @@
 }
 
 /* Hide Streamlit hosting controls and leave only the application interface. */
-[data-testid="stToolbar"],
 [data-testid="stDecoration"],
 [data-testid="stStatusWidget"],
 [data-testid="stAppDeployButton"],
@@ -11,6 +10,37 @@
 footer {
 	visibility: hidden;
 	display: none;
+}
+
+[data-testid="stSidebarCollapseButton"],
+[data-testid="stSidebarCollapsedControl"] {
+	visibility: visible !important;
+	opacity: 1 !important;
+	display: flex !important;
+	align-items: center;
+	justify-content: center;
+	width: 2.75rem !important;
+	height: 2.75rem !important;
+	margin: 0.5rem;
+	border: 2px solid #123b5d !important;
+	border-radius: 0.6rem !important;
+	background: #ffd54f !important;
+	color: #123b5d !important;
+	box-shadow: 0 2px 8px rgb(0 0 0 / 25%);
+	z-index: 1001;
+}
+
+[data-testid="stSidebarCollapseButton"]:hover,
+[data-testid="stSidebarCollapsedControl"]:hover {
+	background: #ffca28 !important;
+	box-shadow: 0 3px 10px rgb(0 0 0 / 35%);
+	transform: scale(1.05);
+}
+
+[data-testid="stSidebarCollapseButton"] svg,
+[data-testid="stSidebarCollapsedControl"] svg {
+	fill: #123b5d !important;
+	color: #123b5d !important;
 }
 
 [data-testid="stSidebar"] {
