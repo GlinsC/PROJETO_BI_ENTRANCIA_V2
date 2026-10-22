@@ -70,8 +70,8 @@ def identidade_resolucao(resolucao):
 	identidades = [
 		("POLICIAL", "Estabelecimento Policial", "#1769aa", "#e5f3ff"),
 		("MILITAR", "Estabelecimento Militar", "#b42318", "#fff0ee"),
-		("PRISIONAIS", "Estabelecimento prisional", "#6b46c1", "#f2edff"),
-		("IDOSOS", "Pessoas idosas", "#19724a", "#e9f8f0"),
+		("PRISIONAL", "Estabelecimentos prisional", "#6b46c1", "#f2edff"),
+		("LONGA PERMANÊNCIA", "Instituição de longa permanência", "#19724a", "#e9f8f0"),
 		("ACOLHIMENTO INSTITUCIONAL", "Acolhimento institucional", "#b45309", "#fff6e5"),
 		("ACOLHIMENTO FAMILIAR", "Acolhimento Familiar", "#b45309", "#fff6e5"),
 		("FAMÍLIA ACOLHEDORA", "Família acolhedora", "#c24178", "#fff0f6"),
@@ -169,12 +169,18 @@ else:
 		f'<span>Resolução selecionada</span><strong>{nome_identidade}</strong></div>',
 		unsafe_allow_html=True,
 	)
-	st.write("Prazo:", resolucao_selecionada["prazo_resolucao"])
+	prazo_resolucao = resolucao_selecionada["prazo_resolucao"]
+	if ":" in prazo_resolucao:
+		split_prazo = prazo_resolucao.split(":")
+		st.write("Data da Visita:", split_prazo[0])
+		st.write("Data da Remessa:", split_prazo[1])
+	else:
+		st.write("Data da Visita:", resolucao_selecionada["prazo_resolucao"])
 	st.write("Membros:", resolucao_selecionada["descricao_resolucao"])
 
 	link_resolucao = resolucao_selecionada["link_resolucao"]
 	if not pd.isna(link_resolucao) and str(link_resolucao).strip():
-		st.link_button("Acessar link da resolução", str(link_resolucao))
+		st.link_button("Acessar link do Formulário", str(link_resolucao))
 
 	st.markdown(f'<h3 style="color: {cor};">Dados filtrados</h3>', unsafe_allow_html=True)
 	st.caption(f"{len(dados_filtrados)} registro(s) encontrado(s)")
