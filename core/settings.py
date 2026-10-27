@@ -31,12 +31,7 @@ SECRET_KEY = 'django-insecure-&mv3f^bkc1hu$aks!f2c--^9gz(wkap=5hbem%v8i@@8kcc)b=
 DEBUG = os.environ.get('DJANGO_DEBUG', 'false').lower() == 'true'
 
 ALLOWED_HOSTS = [
-    host.strip()
-    for host in os.environ.get(
-        'DJANGO_ALLOWED_HOSTS',
-        'arcanjoresolucao.onrender.com,localhost,127.0.0.1',
-    ).split(',')
-    if host.strip()
+  'arcanjoresolucao.onrender.com',
 ]
 
 
