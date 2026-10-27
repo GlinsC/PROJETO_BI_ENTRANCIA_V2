@@ -30,7 +30,8 @@ SECRET_KEY = 'django-insecure-&mv3f^bkc1hu$aks!f2c--^9gz(wkap=5hbem%v8i@@8kcc)b=
 # Set DJANGO_DEBUG=false in production. Local development defaults to debug mode.
 DEBUG = os.environ.get('DJANGO_DEBUG', 'true').lower() == 'true'
 
-ALLOWED_HOSTS = ['arcanjoresolucao.onrender.com/']
+ALLOWED_HOSTS = ['arcanjoresolucao.onrender.com/',
+                 'arcanjoresolucao.onrender.com',]
 
 
 # Application definition
