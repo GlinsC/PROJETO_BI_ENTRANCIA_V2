@@ -27,11 +27,17 @@ load_dotenv(BASE_DIR / '.env')
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-&mv3f^bkc1hu$aks!f2c--^9gz(wkap=5hbem%v8i@@8kcc)b='
 
-# Set DJANGO_DEBUG=false in production. Local development defaults to debug mode.
-DEBUG = os.environ.get('DJANGO_DEBUG', 'true').lower() == 'true'
+# Enable Django's technical error pages only when explicitly requested.
+DEBUG = os.environ.get('DJANGO_DEBUG', 'false').lower() == 'true'
 
-ALLOWED_HOSTS = ['arcanjoresolucao.onrender.com/',
-                 'arcanjoresolucao.onrender.com',]
+ALLOWED_HOSTS = [
+    host.strip()
+    for host in os.environ.get(
+        'DJANGO_ALLOWED_HOSTS',
+        'arcanjoresolucao.onrender.com,localhost,127.0.0.1',
+    ).split(',')
+    if host.strip()
+]
 
 
 # Application definition
@@ -144,11 +150,11 @@ SESSION_COOKIE_AGE = 60 * 60 * 2  # 2 horas
 SESSION_SAVE_EVERY_REQUEST = True
 
 SECURE_SSL_REDIRECT = not DEBUG
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 SESSION_COOKIE_SECURE = not DEBUG
 CSRF_COOKIE_SECURE = not DEBUG
 SECURE_HSTS_SECONDS = 3600 if not DEBUG else 0
 
 # Email
 # https://docs.djangoproject.com/en/6.1/topics/email/#topic-email-configuration
-
 
