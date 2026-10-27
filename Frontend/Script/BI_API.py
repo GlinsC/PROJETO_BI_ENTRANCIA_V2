@@ -70,15 +70,15 @@ def identidade_resolucao(resolucao):
 	identidades = [
 		("POLICIAL", "Estabelecimento Policial", "#1769aa", "#e5f3ff"),
 		("MILITAR", "Estabelecimento Militar", "#b42318", "#fff0ee"),
-		("PRISIONAL", "Estabelecimentos prisional", "#6b46c1", "#f2edff"),
-		("LONGA PERMANÊNCIA", "Instituição de longa permanência", "#19724a", "#e9f8f0"),
-		("ACOLHIMENTO INSTITUCIONAL", "Acolhimento institucional", "#b45309", "#fff6e5"),
+		("PRISIONAL", "Estabelecimento Prisional", "#6b46c1", "#f2edff"),
+		("LONGA PERMANÊNCIA", "Instituição de Longa Permanência", "#19724a", "#e9f8f0"),
+		("ACOLHIMENTO INSTITUCIONAL", "Acolhimento Institucional", "#b45309", "#fff6e5"),
 		("ACOLHIMENTO FAMILIAR", "Acolhimento Familiar", "#b45309", "#fff6e5"),
-		("FAMÍLIA ACOLHEDORA", "Família acolhedora", "#c24178", "#fff0f6"),
-		("LIBERDADE ASSISTIDA", "Liberdade assistida e PSC", "#087f8c", "#e7f8fa"),
+		("FAMÍLIA ACOLHEDORA", "Família Acolhedora", "#c24178", "#fff0f6"),
+		("LIBERDADE ASSISTIDA", "Liberdade Assistida e Prestação de Serviços à Comunidade", "#087f8c", "#e7f8fa"),
 		("INTERNAÇÃO", "Internação", "#334e68", "#edf3f8"),
 		("SEMILIBERDADE", "Semiliberdade", "#8a5a00", "#fff8df"),
-		("INTERCEPTAÇÃO", "Interceptação telefônica", "#b45309", "#fff6e5"),
+		("INTERCEPTAÇÃO", "Interceptação Telefônica", "#b45309", "#fff6e5"),
 	]
 	texto = str(resolucao).upper()
 	for termo, nome, cor, fundo in identidades:

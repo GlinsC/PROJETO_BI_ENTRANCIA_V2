@@ -30,7 +30,7 @@ SECRET_KEY = 'django-insecure-&mv3f^bkc1hu$aks!f2c--^9gz(wkap=5hbem%v8i@@8kcc)b=
 # Set DJANGO_DEBUG=false in production. Local development defaults to debug mode.
 DEBUG = os.environ.get('DJANGO_DEBUG', 'true').lower() == 'true'
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['arcanjoresolucao.onrender.com/']
 
 
 # Application definition
@@ -48,6 +48,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -122,7 +123,8 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/6.1/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/painel/'
