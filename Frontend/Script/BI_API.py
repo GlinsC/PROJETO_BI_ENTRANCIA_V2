@@ -14,7 +14,7 @@ st.set_page_config(
 
 
 API_TIMEOUT = 10
-API_URL = os.getenv("BI_API_URL", "http://127.0.0.1:8000/api/visualizacao").rstrip("/")
+API_URL = os.getenv("BI_API_URL", "https://arcanjoresolucao.onrender.com/api/visualizacao/").rstrip("/")
 PASTA_STYLE = Path(__file__).resolve().parents[1] / "Style"
 IMAGEM_LOGO = PASTA_STYLE / "logo_mpal_22.png"
 ARQUIVO_CSS = PASTA_STYLE / "Style.css"
